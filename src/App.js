@@ -92,7 +92,6 @@ class App extends Component
 
         this.bcWrapper = null;
         this.bcScriptLoadedCount = 0;
-        this.heartbeatId = null;
 
         this.state = this.getDefaultState();
     }
@@ -119,16 +118,9 @@ class App extends Component
 
     dieWithMessage(message)
     {
-        // Stop heartbeat
-        if (this.heartbeatId)
-        {
-            clearInterval(this.heartbeatId);
-            this.heartbeatId = null;
-        }
-
         // Close RTT connection
         this.bcWrapper.brainCloudClient.deregisterAllRTTCallbacks();
-        this.bcWrapper.brainCloudClient.disableRTT();
+        this.bcWrapper.brainCloudClient.resetCommunication();
 
         // Pop alert message
         alert(message);
@@ -268,16 +260,6 @@ class App extends Component
 
     onLoggedIn()
     {
-        // Start a bc heartbeat timer
-        if (!this.heartbeatId)
-        {
-            this.heartbeatId = setInterval(() =>
-            {
-                console.log("BC: heartbeat");
-                this.bcWrapper.brainCloudClient.heartbeat();
-            }, 600000);
-        }
-
         // Turn on RTT
         console.log("BC: enableRTT");
         this.bcWrapper.brainCloudClient.registerRTTChatCallback(this.onRttMessage.bind(this));
