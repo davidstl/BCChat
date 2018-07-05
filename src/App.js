@@ -20,6 +20,8 @@ let GAMES = {
     }
 }
 
+let MAX_HISTORY = 100;
+
 let bcScripts = [
     "/jquery-3.3.1.min.js",
     "/CryptoJS-3.0.2.min.js",
@@ -92,6 +94,8 @@ class App extends Component
 
         this.bcWrapper = null;
         this.bcScriptLoadedCount = 0;
+        this.pendingMsgs = [];
+        this.feedUpdating = false;
 
         this.state = this.getDefaultState();
     }
@@ -174,6 +178,7 @@ class App extends Component
         this.bcWrapper = new window.BrainCloudWrapper("bcchat");
         this.bcWrapper.brainCloudClient.setServerUrl(brainCloudServerURL);
         this.bcWrapper.initialize(currentApp.appId, currentApp.appSecret, packageJson.version);
+        this.bcWrapper.brainCloudClient.enableLogging(false);
     }
 
     componentDidMount()
@@ -602,7 +607,7 @@ class App extends Component
             else
             {
                 let state = this.state;
-                state.chatData.channels = defaultChannelsInitState.channels;
+                state.chatData.channels = defaultChannelsInitState.channels.sort((a, b) => a.name < b.name ? -1 : 1);
                 state.chatData.activeChannel = null;
                 if (state.chatData.channels.length > 0)
                 {
@@ -616,7 +621,7 @@ class App extends Component
     connectToChannel(channel, onSuccess, onFail)
     {
         console.log("BC: channelConnect");
-        this.bcWrapper.chat.channelConnect(channel.id, 1000, result =>
+        this.bcWrapper.chat.channelConnect(channel.id, MAX_HISTORY, result =>
         {
             console.log(JSON.stringify(result));
             if (result.status === 200)
@@ -666,35 +671,63 @@ class App extends Component
         }
     }
 
-    onChatMessage(message)
+    updateMessageFeed()
     {
         let state = this.state;
-        let pred = channel => channel.id === message.chId;
-        let channel = state.chatData.channels.find(pred);
-        if (!channel) channel = state.chatData.groups.find(pred);
-        if (channel)
+
+        this.pendingMsgs.forEach(message =>
         {
-            if (state.chatData.activeChannel !== channel)
+            let pred = channel => channel.id === message.chId;
+            let channel = state.chatData.channels.find(pred);
+            if (!channel) channel = state.chatData.groups.find(pred);
+            if (channel)
             {
-                channel.dirty = true;
-                this.updateAppTitleBasedOnChannelDirty();
-            }
-
-            if (message.from.id === this.bcWrapper.brainCloudClient.getProfileId() && message.content.rich && message.content.rich.localTime)
-            {
-                message.content.rich.roundTrip = new Date().getTime() - message.content.rich.localTime;
-
-                // eslint-disable-next-line
-                let outgoingMessage = pendingOutgoingMessages.find(msg => msg.msgId == message.msgId);
-                if (outgoingMessage && outgoingMessage.content.rich.apiRoundTrip)
+                if (state.chatData.activeChannel !== channel)
                 {
-                    message.content.rich.apiRoundTrip = outgoingMessage.content.rich.apiRoundTrip;
-                    pendingOutgoingMessages.splice(pendingOutgoingMessages.indexOf(outgoingMessage), 1);
+                    channel.dirty = true;
+                    this.updateAppTitleBasedOnChannelDirty();
+                }
+
+                channel.messages.push(message);
+                while (channel.messages.length > MAX_HISTORY) {
+                    channel.messages.shift();
                 }
             }
+        });
 
-            channel.messages.push(message);
-            this.setState(state);
+        this.pendingMsgs = [];
+        this.feedUpdating = true;
+        this.setState(state);
+
+        setTimeout(() =>
+        {
+            this.feedUpdating = false;
+            if (this.pendingMsgs.length > 0)
+            {
+                this.updateMessageFeed();
+            }
+        }, 500);
+    }
+
+    onChatMessage(message)
+    {
+        if (message.from.id === this.bcWrapper.brainCloudClient.getProfileId() && message.content.rich && message.content.rich.localTime)
+        {
+            message.content.rich.roundTrip = new Date().getTime() - message.content.rich.localTime;
+
+            // eslint-disable-next-line
+            let outgoingMessage = pendingOutgoingMessages.find(msg => msg.msgId == message.msgId);
+            if (outgoingMessage && outgoingMessage.content.rich.apiRoundTrip)
+            {
+                message.content.rich.apiRoundTrip = outgoingMessage.content.rich.apiRoundTrip;
+                pendingOutgoingMessages.splice(pendingOutgoingMessages.indexOf(outgoingMessage), 1);
+            }
+        }
+
+        this.pendingMsgs.push(message);
+        if (!this.feedUpdating)
+        {
+            this.updateMessageFeed();
         }
     }
 

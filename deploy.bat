@@ -1,5 +1,5 @@
 echo --- Update build version
-call npm version patch -m "deploy.bat"
+call npm version patch --force -m "deploy.bat"
 
 echo --- Build the web page
 call npm run-script build
