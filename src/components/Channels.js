@@ -75,8 +75,6 @@ class Channels extends Component
                         this.props.groups.map(group => 
                         {
                             return (
-                                // <Channel key={group.id} channel={group} selected={this.props.activeChannelId === group.id} 
-                                //          onSelected={this.onSelected.bind(this)} />
                                 <Channel key={group.id} channel={group} selected={this.props.activeChannelId === group.id} 
                                         onSelected={this.onSelected.bind(this)}
                                         onAdd={this.onRemoveGroup.bind(this)} 
@@ -85,16 +83,16 @@ class Channels extends Component
                         })
                     }
                 </div>
-                <ChannelTab text="Mailboxes" />
+                {/* <ChannelTab text="Mailboxes" /> // We will support those later
                 <div>
                     {
-                  /*      this.props.channels.map(channel => 
+                        this.props.channels.map(channel => 
                         {
                             return (
                                 <Channel key={channel.id} channel={channel} selected={this.props.activeChannelId === channel.id} 
                                          onSelected={this.onSelected.bind(this)} />
                             );
-                        })*/
+                        })
                     }
                 </div>
                 <ChannelTab text="Direct Messages" onAdd={this.onAddFriendClicked.bind(this)} />
@@ -110,7 +108,7 @@ class Channels extends Component
                             );
                         })
                     }
-                </div>
+                </div> */}
             </div>
         );
     }

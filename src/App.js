@@ -178,7 +178,7 @@ class App extends Component
         this.bcWrapper = new window.BrainCloudWrapper("bcchat");
         this.bcWrapper.brainCloudClient.setServerUrl(brainCloudServerURL);
         this.bcWrapper.initialize(currentApp.appId, currentApp.appSecret, packageJson.version);
-        this.bcWrapper.brainCloudClient.enableLogging(false);
+        this.bcWrapper.brainCloudClient.enableLogging(true);
     }
 
     componentDidMount()
