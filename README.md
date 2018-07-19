@@ -1,6 +1,8 @@
 # BCChat
 Test chat app built in ReactJS that exerce the brainCloud Real Time Tech (RTT)
 
+![](screenshots/Capture.PNG)
+
 ## How to test this app yourself
 1. Create a new app in the portal if you don't already have one
 2. In **Advanced Settings** of the portal, check "**Real-time Tech (RTT) Enabled**"
