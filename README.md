@@ -5,17 +5,17 @@ Test chat app built in ReactJS that exerce the brainCloud Real Time Tech (RTT)
 
 ## How to test this app yourself
 
-### Prerequisises
+### prerequisites
 If you don't have it already, install NodeJS https://nodejs.org/
 [optional] We recommand to install Visual Studio Code https://code.visualstudio.com/ . You can skip installing Node if you install VSCode.
 
 ### App setup
-1. Create a new app in the portal if you don't already have one
+1. Create a new app in the portal if you don't already have one here: https://portal.braincloudservers.com
 2. In **Advanced Settings** of the portal, check "**Real-time Tech (RTT) Enabled**"
 3. In **Messaging - Chat** section of the portal, enable "**Chat Service Enabled**", then click save.
 4. In **Messaging - Chat Channels** Channels section of the portal, create some new global chat channels to be visible in the app.
 
-### BCChat
+### Running locally
 1. Clone this repository
 2. in `src/App.js`, fill in the `appId`, `appSecret` and `brainCloudServerURL`:
     ```
