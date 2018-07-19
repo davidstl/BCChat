@@ -10,11 +10,11 @@ import CreateGroupScreen from './components/screens/CreateGroupScreen';
 import EnterNameScreen from './components/screens/EnterNameScreen';
 import LogInScreen from './components/screens/LogInScreen';
 
-let brainCloudServerURL = "";
+let brainCloudServerURL = ""; // PLEASE FILL
 let GAMES = {
     bcchat: {
         appId: "", // PLEASE FILL
-        appSecret: "",
+        appSecret: "", // PLEASE FILL
         channels: [
         ]
     }
