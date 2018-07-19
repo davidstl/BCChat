@@ -1,13 +1,13 @@
 # BCChat
-Test chat app built in ReactJS that exerce the brainCloud Real Time Tech (RTT)
+Test chat app built in ReactJS that exercise the brainCloud Real-time Tech Tech (RTT)
 
 ![](screenshots/Capture.PNG)
 
 ## How to test this app yourself
 
-### prerequisites
+### Prerequisites
 If you don't have it already, install NodeJS https://nodejs.org/
-[optional] We recommand to install Visual Studio Code https://code.visualstudio.com/ . You can skip installing Node if you install VSCode.
+[optional] We recommend to install Visual Studio Code https://code.visualstudio.com/ . You can skip installing Node if you install VSCode.
 
 ### App setup
 1. Create a new app in the portal if you don't already have one here: https://portal.braincloudservers.com
@@ -39,4 +39,4 @@ If you don't have it already, install NodeJS https://nodejs.org/
    npm start
    ```
 
-This should launch BCChat into a tab in your browser and it should just work! Enjoy.
+The terminal should launch BCChat into a tab in your browser, and it should just work! Enjoy.
