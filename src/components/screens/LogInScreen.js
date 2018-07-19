@@ -61,7 +61,7 @@ class LogInScreen extends Component
                             })
                         }
                     </select>
-                    <input type="email" ref="username" placeholder="Email"
+                    <input type="text" ref="username" placeholder="Username"
                         style={{...Theme.TextInputStyle, display:"block", margin:"16px 0"}} />
                     <input type="password" ref="password" placeholder="Password"
                         style={{...Theme.TextInputStyle, display:"block", margin:"16px 0"}} />

@@ -41,7 +41,6 @@ class AddFriendScreen extends Component
 
             if (result.status === 200)
             {
-                // Now search by emails
                 this.setState({searchResults: result.data.matches.map(friend =>
                 {
                     friend.id = friend.profileId;

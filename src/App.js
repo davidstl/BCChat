@@ -10,11 +10,11 @@ import CreateGroupScreen from './components/screens/CreateGroupScreen';
 import EnterNameScreen from './components/screens/EnterNameScreen';
 import LogInScreen from './components/screens/LogInScreen';
 
-let brainCloudServerURL = ""; // PLEASE FILL
+let brainCloudServerURL = "";
 let GAMES = {
     bcchat: {
         appId: "", // PLEASE FILL
-        appSecret: "", // PLEASE FILL
+        appSecret: "",
         channels: [
         ]
     }
@@ -222,8 +222,8 @@ class App extends Component
         defaultChannelsInitState.names = currentApp.channels;
         this.initBC();
 
-        console.log("BC: authenticateEmailPassword");
-        this.bcWrapper.authenticateEmailPassword(login.username, login.password, true, this.handlePlayerState.bind(this));
+        console.log("BC: authenticateUniversal");
+        this.bcWrapper.authenticateUniversal(login.username, login.password, true, this.handlePlayerState.bind(this));
 
         let state = this.state;
         state.appState = AppState.Loading;
@@ -451,7 +451,7 @@ class App extends Component
         this.setState(this.state);
 
         console.log("BC updateChatMessage");
-        this.bcWrapper.chat.updateChatMessage(channel.id, message.msgId, message.ver, message.content, true, result =>
+        this.bcWrapper.chat.updateChatMessage(channel.id, message.msgId, message.ver, message.content, result =>
         {
             console.log(JSON.stringify(result));
             message.hideRemoveBtn = false;
