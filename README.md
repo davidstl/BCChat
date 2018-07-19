@@ -6,8 +6,9 @@ Test chat app built in ReactJS that exercise the brainCloud Real-time Tech Tech 
 ## How to test this app yourself
 
 ### Prerequisites
-If you don't have it already, install NodeJS https://nodejs.org/
-[optional] We recommend to install Visual Studio Code https://code.visualstudio.com/ . You can skip installing Node if you install VSCode.
+If you don't have it already, install NodeJS https://nodejs.org/.
+
+[optional] We recommend to install Visual Studio Code https://code.visualstudio.com/. You can skip installing Node if you install VSCode.
 
 ### App setup
 1. Create a new app in the portal if you don't already have one here: https://portal.braincloudservers.com
