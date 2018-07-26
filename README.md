@@ -20,7 +20,6 @@ If you don't have it already, install NodeJS https://nodejs.org/.
 1. Clone this repository
 2. in `src/App.js`, fill in the `appId`, `appSecret` and `brainCloudServerURL`:
     ```
-    let brainCloudServerURL = " ... "; // PLEASE FILL
     let GAMES = {
         bcchat: {
             appId: " ... ", // PLEASE FILL
