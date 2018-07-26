@@ -10,7 +10,6 @@ import CreateGroupScreen from './components/screens/CreateGroupScreen';
 import EnterNameScreen from './components/screens/EnterNameScreen';
 import LogInScreen from './components/screens/LogInScreen';
 
-let brainCloudServerURL = ""; // PLEASE FILL
 let GAMES = {
     bcchat: {
         appId: "", // PLEASE FILL
@@ -45,6 +44,7 @@ let bcScripts = [
     "/brainCloud/src/brainCloudClient-match-making.js",
     "/brainCloud/src/brainCloudClient-messaging.js",
     "/brainCloud/src/brainCloudClient-one-way-match.js",
+    "/brainCloud/src/brainCloudClient-lobby.js",
     "/brainCloud/src/brainCloudClient-playback-stream.js",
     "/brainCloud/src/brainCloudClient-player-state.js",
     "/brainCloud/src/brainCloudClient-player-statistics-event.js",
@@ -175,8 +175,8 @@ class App extends Component
 
     initBC()
     {
+
         this.bcWrapper = new window.BrainCloudWrapper("bcchat");
-        this.bcWrapper.brainCloudClient.setServerUrl(brainCloudServerURL);
         this.bcWrapper.initialize(currentApp.appId, currentApp.appSecret, packageJson.version);
         this.bcWrapper.brainCloudClient.enableLogging(true);
     }
