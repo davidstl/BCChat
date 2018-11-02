@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import Theme from './Theme';
 import packageJson from '../package.json';
+import BC from 'braincloud-react';
 
 // Component imports
 import AddFriendScreen from './components/screens/AddFriendScreen';
@@ -20,51 +21,6 @@ let GAMES = {
 }
 
 let MAX_HISTORY = 100;
-
-let bcScripts = [
-    "/jquery-3.3.1.min.js",
-    "/CryptoJS-3.0.2.min.js",
-    "/brainCloud/src/brainCloudBase.js",
-    "/brainCloud/src/brainCloudClient-abtests.js",
-    "/brainCloud/src/brainCloudClient-async-match.js",
-    "/brainCloud/src/brainCloudClient-authentication.js",
-    "/brainCloud/src/brainCloudClient-chat.js",
-    "/brainCloud/src/brainCloudClient-data-stream.js",
-    "/brainCloud/src/brainCloudClient-entity.js",
-    "/brainCloud/src/brainCloudClient-events.js",
-    "/brainCloud/src/brainCloudClient-file.js",
-    "/brainCloud/src/brainCloudClient-friend.js",
-    "/brainCloud/src/brainCloudClient-gamification.js",
-    "/brainCloud/src/brainCloudClient-global-app.js",
-    "/brainCloud/src/brainCloudClient-global-statistics.js",
-    "/brainCloud/src/brainCloudClient-globalentity.js",
-    "/brainCloud/src/brainCloudClient-group.js",
-    "/brainCloud/src/brainCloudClient-identity.js",
-    "/brainCloud/src/brainCloudClient-mail.js",
-    "/brainCloud/src/brainCloudClient-match-making.js",
-    "/brainCloud/src/brainCloudClient-messaging.js",
-    "/brainCloud/src/brainCloudClient-one-way-match.js",
-    "/brainCloud/src/brainCloudClient-lobby.js",
-    "/brainCloud/src/brainCloudClient-playback-stream.js",
-    "/brainCloud/src/brainCloudClient-player-state.js",
-    "/brainCloud/src/brainCloudClient-player-statistics-event.js",
-    "/brainCloud/src/brainCloudClient-player-statistics.js",
-    "/brainCloud/src/brainCloudClient-products.js",
-    "/brainCloud/src/brainCloudClient-profanity.js",
-    "/brainCloud/src/brainCloudClient-push-notifications.js",
-    "/brainCloud/src/brainCloudClient-reason-codes.js",
-    "/brainCloud/src/brainCloudClient-redemption-code.js",
-    "/brainCloud/src/brainCloudClient-rttRegistration.js",
-    "/brainCloud/src/brainCloudClient-s3-handler.js",
-    "/brainCloud/src/brainCloudClient-script.js",
-    "/brainCloud/src/brainCloudClient-social-leaderboards.js",
-    "/brainCloud/src/brainCloudClient-status-codes.js",
-    "/brainCloud/src/brainCloudClient-time.js",
-    "/brainCloud/src/brainCloudClient-tournament.js",
-    "/brainCloud/src/brainCloudClient.js",
-    "/brainCloud/src/brainCloudRttComms.js",
-    "/brainCloud/src/brainCloudWrapper.js",
-];
 
 let currentApp = GAMES.bcchat;
 let defaultChannelsInitState = {
@@ -136,54 +92,30 @@ class App extends Component
         this.initBC();
         this.setState({appState: AppState.LogIn});
     }
-    
-    loadBCScripts()
-    {
-        bcScripts.forEach(scriptName =>
-        {
-            const script = document.createElement("script");
-
-            script.onload = this.handleBCScriptLoaded.bind(this);
-            script.src = scriptName + "?v=" + packageJson.version;
-            script.async = true;
-    
-            document.getElementsByTagName('head')[0].appendChild(script);
-        });
-    }
-
-    handleBCScriptLoaded()
-    {
-        this.bcScriptLoadedCount++;
-        if (this.bcScriptLoadedCount >= bcScripts.length)
-        {
-            console.log("Libraries loaded");
-            this.initBC();
-            this.bcWrapper.restoreSession(result =>
-            {
-                if (result.status === 200)
-                {
-                    defaultChannelsInitState.names = currentApp.channels;
-                    this.handlePlayerState(result);
-                }
-                else
-                {
-                    this.setState({appState: AppState.LogIn});
-                }
-            });
-        }
-    }
 
     initBC()
     {
 
-        this.bcWrapper = new window.BrainCloudWrapper("bcchat");
+        this.bcWrapper = new BC.BrainCloudWrapper("bcchat");
         this.bcWrapper.initialize(currentApp.appId, currentApp.appSecret, packageJson.version);
         this.bcWrapper.brainCloudClient.enableLogging(true);
     }
 
     componentDidMount()
     {
-        this.loadBCScripts();
+        this.initBC();
+        this.bcWrapper.restoreSession(result =>
+        {
+            if (result.status === 200)
+            {
+                defaultChannelsInitState.names = currentApp.channels;
+                this.handlePlayerState(result);
+            }
+            else
+            {
+                this.setState({appState: AppState.LogIn});
+            }
+        });
     }
 
     handlePlayerState(result)
