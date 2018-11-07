@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import Theme from './Theme';
 import packageJson from '../package.json';
+import BC from 'braincloud-react';
 
 // Component imports
 import AddFriendScreen from './components/screens/AddFriendScreen';
@@ -14,57 +15,11 @@ let GAMES = {
     bcchat: {
         appId: "", // PLEASE FILL
         appSecret: "", // PLEASE FILL
-        channels: [
-        ]
+        url: null // PLEASE FILL or leave null for default bc server
     }
 }
 
 let MAX_HISTORY = 100;
-
-let bcScripts = [
-    "/jquery-3.3.1.min.js",
-    "/CryptoJS-3.0.2.min.js",
-    "/brainCloud/src/brainCloudBase.js",
-    "/brainCloud/src/brainCloudClient-abtests.js",
-    "/brainCloud/src/brainCloudClient-async-match.js",
-    "/brainCloud/src/brainCloudClient-authentication.js",
-    "/brainCloud/src/brainCloudClient-chat.js",
-    "/brainCloud/src/brainCloudClient-data-stream.js",
-    "/brainCloud/src/brainCloudClient-entity.js",
-    "/brainCloud/src/brainCloudClient-events.js",
-    "/brainCloud/src/brainCloudClient-file.js",
-    "/brainCloud/src/brainCloudClient-friend.js",
-    "/brainCloud/src/brainCloudClient-gamification.js",
-    "/brainCloud/src/brainCloudClient-global-app.js",
-    "/brainCloud/src/brainCloudClient-global-statistics.js",
-    "/brainCloud/src/brainCloudClient-globalentity.js",
-    "/brainCloud/src/brainCloudClient-group.js",
-    "/brainCloud/src/brainCloudClient-identity.js",
-    "/brainCloud/src/brainCloudClient-mail.js",
-    "/brainCloud/src/brainCloudClient-match-making.js",
-    "/brainCloud/src/brainCloudClient-messaging.js",
-    "/brainCloud/src/brainCloudClient-one-way-match.js",
-    "/brainCloud/src/brainCloudClient-lobby.js",
-    "/brainCloud/src/brainCloudClient-playback-stream.js",
-    "/brainCloud/src/brainCloudClient-player-state.js",
-    "/brainCloud/src/brainCloudClient-player-statistics-event.js",
-    "/brainCloud/src/brainCloudClient-player-statistics.js",
-    "/brainCloud/src/brainCloudClient-products.js",
-    "/brainCloud/src/brainCloudClient-profanity.js",
-    "/brainCloud/src/brainCloudClient-push-notifications.js",
-    "/brainCloud/src/brainCloudClient-reason-codes.js",
-    "/brainCloud/src/brainCloudClient-redemption-code.js",
-    "/brainCloud/src/brainCloudClient-rttRegistration.js",
-    "/brainCloud/src/brainCloudClient-s3-handler.js",
-    "/brainCloud/src/brainCloudClient-script.js",
-    "/brainCloud/src/brainCloudClient-social-leaderboards.js",
-    "/brainCloud/src/brainCloudClient-status-codes.js",
-    "/brainCloud/src/brainCloudClient-time.js",
-    "/brainCloud/src/brainCloudClient-tournament.js",
-    "/brainCloud/src/brainCloudClient.js",
-    "/brainCloud/src/brainCloudRttComms.js",
-    "/brainCloud/src/brainCloudWrapper.js",
-];
 
 let currentApp = GAMES.bcchat;
 let defaultChannelsInitState = {
@@ -136,54 +91,29 @@ class App extends Component
         this.initBC();
         this.setState({appState: AppState.LogIn});
     }
-    
-    loadBCScripts()
-    {
-        bcScripts.forEach(scriptName =>
-        {
-            const script = document.createElement("script");
-
-            script.onload = this.handleBCScriptLoaded.bind(this);
-            script.src = scriptName + "?v=" + packageJson.version;
-            script.async = true;
-    
-            document.getElementsByTagName('head')[0].appendChild(script);
-        });
-    }
-
-    handleBCScriptLoaded()
-    {
-        this.bcScriptLoadedCount++;
-        if (this.bcScriptLoadedCount >= bcScripts.length)
-        {
-            console.log("Libraries loaded");
-            this.initBC();
-            this.bcWrapper.restoreSession(result =>
-            {
-                if (result.status === 200)
-                {
-                    defaultChannelsInitState.names = currentApp.channels;
-                    this.handlePlayerState(result);
-                }
-                else
-                {
-                    this.setState({appState: AppState.LogIn});
-                }
-            });
-        }
-    }
 
     initBC()
     {
-
-        this.bcWrapper = new window.BrainCloudWrapper("bcchat");
+        this.bcWrapper = new BC.BrainCloudWrapper("bcchat");
         this.bcWrapper.initialize(currentApp.appId, currentApp.appSecret, packageJson.version);
+        if (currentApp.url) this.bcWrapper.brainCloudClient.setServerUrl(currentApp.url);
         this.bcWrapper.brainCloudClient.enableLogging(true);
     }
 
     componentDidMount()
     {
-        this.loadBCScripts();
+        this.initBC();
+        this.bcWrapper.restoreSession(result =>
+        {
+            if (result.status === 200)
+            {
+                this.handlePlayerState(result);
+            }
+            else
+            {
+                this.setState({appState: AppState.LogIn});
+            }
+        });
     }
 
     handlePlayerState(result)
@@ -219,7 +149,6 @@ class App extends Component
     handleLogin(login)
     {
         currentApp = GAMES[login.appName];
-        defaultChannelsInitState.names = currentApp.channels;
         this.initBC();
 
         console.log("BC: authenticateUniversal");
@@ -268,6 +197,7 @@ class App extends Component
         // Turn on RTT
         console.log("BC: enableRTT");
         this.bcWrapper.brainCloudClient.registerRTTChatCallback(this.onRttMessage.bind(this));
+        this.bcWrapper.brainCloudClient.registerRTTPresenceCallback(this.onRttMessage.bind(this));
         this.bcWrapper.brainCloudClient.enableRTT(result =>
         {
             console.log(JSON.stringify(result));
@@ -383,6 +313,54 @@ class App extends Component
                     let state = this.state;
                     state.chatData.groups.push(group);
                     this.setState(state);
+
+                    this.bcWrapper.group.readGroupMembers(group.groupId, result =>
+                    {
+                        console.log(JSON.stringify(result));
+                        if (result.status === 200)
+                        {
+                            let state = this.state;
+                            group.members = [];
+                            Object.keys(result.data).forEach(profileId =>
+                            {
+                                var member = result.data[profileId];
+                                group.members.push({
+                                    id: profileId,
+                                    name: member.playerName,
+                                    pic: null,
+                                    online: state.user.id === profileId
+                                });
+                            });
+                            this.setState(state);
+
+                            this.bcWrapper.presence.registerListenersForGroup(group.groupId, true, result =>
+                            {
+                                console.log(JSON.stringify(result));
+                                if (result.status === 200)
+                                {
+                                    let state = this.state;
+                                    result.data.presence.forEach(presence =>
+                                    {
+                                        var member = group.members.find(member => presence.user.id === member.id);
+                                        if (member)
+                                        {
+                                            member.pic = presence.user.pic;
+                                            member.online = presence.online;
+                                        }
+                                    });
+                                    this.setState(state);
+                                }
+                                else
+                                {
+                                    alert("Failed to register listeners for group: " + group.name + ", Err: " + result.status_message);
+                                }
+                            });
+                        }
+                        else
+                        {
+                            alert("Failed to read group members: " + group.name + ", Err: " + result.status_message);
+                        }
+                    });
                 }, () => {
                     alert("Failed to connect to group: " + group.name);
                 });
@@ -744,6 +722,25 @@ class App extends Component
         else if (message.service === "chat" && message.operation === "UPDATE")
         {
             this.onUpdateMessage(message.data);
+        }
+        else if (message.service === "presence" && message.operation === "INCOMING")
+        {
+            var from = message.data.from;
+            let state = this.state;
+            state.chatData.groups.forEach(group =>
+            {
+                if (group.members)
+                {
+                    group.members.forEach(member =>
+                    {
+                        if (member.id === from.id)
+                        {
+                            member.online = message.data.online;
+                        }
+                    });
+                }
+            });
+            this.setState(state);
         }
     }
 

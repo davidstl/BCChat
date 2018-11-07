@@ -6,6 +6,7 @@ import Channels from '../Channels';
 import MsgFeed from '../MsgFeed';
 import StatusBar from '../StatusBar';
 import MultilineTextInput from '../MultilineTextInput';
+import PresenceTab from '../PresenceTab';
 
 // Props
 //  user {id, name, pic}
@@ -107,6 +108,11 @@ class ChatScreen extends Component
                                    onLogoutClicked={this.onLogoutClicked.bind(this)} />
                     </div>
                     <div style={{height:"calc(100% - 106px)"}}>
+                        {
+                            (this.props.data.activeChannel && this.props.data.activeChannel.members) ? (
+                                <PresenceTab members={this.props.data.activeChannel.members} />
+                            ) : ("")
+                        }
                         <MsgFeed messages={(this.props.data.activeChannel && this.props.data.activeChannel.messages) ? this.props.data.activeChannel.messages : []}
                             userId={this.props.user.id}
                             onRemoveMessage={this.onRemoveMessage.bind(this)}
