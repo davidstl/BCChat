@@ -15,8 +15,7 @@ let GAMES = {
     bcchat: {
         appId: "", // PLEASE FILL
         appSecret: "", // PLEASE FILL
-        channels: [
-        ]
+        url: null // PLEASE FILL or leave null for default bc server
     }
 }
 
@@ -95,9 +94,9 @@ class App extends Component
 
     initBC()
     {
-
         this.bcWrapper = new BC.BrainCloudWrapper("bcchat");
         this.bcWrapper.initialize(currentApp.appId, currentApp.appSecret, packageJson.version);
+        if (currentApp.url) this.bcWrapper.brainCloudClient.setServerUrl(currentApp.url);
         this.bcWrapper.brainCloudClient.enableLogging(true);
     }
 
@@ -108,7 +107,6 @@ class App extends Component
         {
             if (result.status === 200)
             {
-                defaultChannelsInitState.names = currentApp.channels;
                 this.handlePlayerState(result);
             }
             else
@@ -151,7 +149,6 @@ class App extends Component
     handleLogin(login)
     {
         currentApp = GAMES[login.appName];
-        defaultChannelsInitState.names = currentApp.channels;
         this.initBC();
 
         console.log("BC: authenticateUniversal");
@@ -200,6 +197,7 @@ class App extends Component
         // Turn on RTT
         console.log("BC: enableRTT");
         this.bcWrapper.brainCloudClient.registerRTTChatCallback(this.onRttMessage.bind(this));
+        this.bcWrapper.brainCloudClient.registerRTTPresenceCallback(this.onRttMessage.bind(this));
         this.bcWrapper.brainCloudClient.enableRTT(result =>
         {
             console.log(JSON.stringify(result));
@@ -315,6 +313,54 @@ class App extends Component
                     let state = this.state;
                     state.chatData.groups.push(group);
                     this.setState(state);
+
+                    this.bcWrapper.group.readGroupMembers(group.groupId, result =>
+                    {
+                        console.log(JSON.stringify(result));
+                        if (result.status === 200)
+                        {
+                            let state = this.state;
+                            group.members = [];
+                            Object.keys(result.data).forEach(profileId =>
+                            {
+                                var member = result.data[profileId];
+                                group.members.push({
+                                    id: profileId,
+                                    name: member.playerName,
+                                    pic: null,
+                                    online: state.user.id === profileId
+                                });
+                            });
+                            this.setState(state);
+
+                            this.bcWrapper.presence.registerListenersForGroup(group.groupId, true, result =>
+                            {
+                                console.log(JSON.stringify(result));
+                                if (result.status === 200)
+                                {
+                                    let state = this.state;
+                                    result.data.presence.forEach(presence =>
+                                    {
+                                        var member = group.members.find(member => presence.user.id === member.id);
+                                        if (member)
+                                        {
+                                            member.pic = presence.user.pic;
+                                            member.online = presence.online;
+                                        }
+                                    });
+                                    this.setState(state);
+                                }
+                                else
+                                {
+                                    alert("Failed to register listeners for group: " + group.name + ", Err: " + result.status_message);
+                                }
+                            });
+                        }
+                        else
+                        {
+                            alert("Failed to read group members: " + group.name + ", Err: " + result.status_message);
+                        }
+                    });
                 }, () => {
                     alert("Failed to connect to group: " + group.name);
                 });
@@ -676,6 +722,25 @@ class App extends Component
         else if (message.service === "chat" && message.operation === "UPDATE")
         {
             this.onUpdateMessage(message.data);
+        }
+        else if (message.service === "presence" && message.operation === "INCOMING")
+        {
+            var from = message.data.from;
+            let state = this.state;
+            state.chatData.groups.forEach(group =>
+            {
+                if (group.members)
+                {
+                    group.members.forEach(member =>
+                    {
+                        if (member.id === from.id)
+                        {
+                            member.online = message.data.online;
+                        }
+                    });
+                }
+            });
+            this.setState(state);
         }
     }
 
